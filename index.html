@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Input Data WhatsApp</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
+body{
+  background:#f3f4f6;
+  padding:20px;
+}
+
+.container{
+  max-width:500px;
+  margin:auto;
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+  font-size:24px;
+}
+
+.label{
+  margin-bottom:8px;
+  font-weight:bold;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  margin-bottom:15px;
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+  margin-bottom:10px;
+}
+
+.btn-save{
+  background:#2563eb;
+  color:white;
+}
+
+.btn-wa{
+  background:#22c55e;
+  color:white;
+}
+
+.history{
+  margin-top:25px;
+}
+
+.history h2{
+  margin-bottom:15px;
+  font-size:20px;
+}
+
+.item{
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.code{
+  font-size:18px;
+  font-weight:bold;
+}
+
+.time{
+  font-size:13px;
+  color:#666;
+  margin-top:5px;
+}
+
+.preview{
+  background:#eef2ff;
+  border:1px solid #c7d2fe;
+  padding:14px;
+  border-radius:10px;
+  margin-bottom:15px;
+  font-size:18px;
+  font-weight:bold;
+  text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>INPUT DATA</h1>
+
+<div class="label">Nomor Phase</div>
+
+<input 
+type="text" 
+id="prefix"
+value="A"
+placeholder="Contoh: A / B / PH"
+style="text-transform: uppercase;"
+/>
+
+<div class="label">Nomor / Angka</div>
+
+<input 
+type="text" 
+id="angka"
+value="106"
+placeholder="Contoh: 106"
+/>
+
+<div class="preview" id="preview">
+A106
+</div>
+
+<button class="btn-save" onclick="simpanData()">
+Simpan Data
+</button>
+
+<button class="btn-wa" onclick="kirimWA()">
+Kirim ke WhatsApp
+</button>
+
+<div class="history">
+
+<h2>Riwayat Input</h2>
+
+<div id="listRiwayat">
+
+<div class="item">
+<div class="code">A106</div>
+<div class="time">17 Mei 2026 - 19:23 WIB</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const prefix = document.getElementById("prefix");
+const angka = document.getElementById("angka");
+const preview = document.getElementById("preview");
+
+function updatePreview(){
+
+  prefix.value = prefix.value.toUpperCase();
+
+  preview.innerText = 
+  prefix.value + angka.value;
+
+}
+
+prefix.addEventListener("input", updatePreview);
+angka.addEventListener("input", updatePreview);
+
+function simpanData(){
+
+  const kode = 
+  prefix.value.toUpperCase() + angka.value;
+
+  if(kode.trim() === ""){
+    alert("Input tidak boleh kosong");
+    return;
+  }
+
+  const list = document.getElementById("listRiwayat");
+
+  const item = document.createElement("div");
+  item.className = "item";
+
+  const sekarang = new Date();
+
+  item.innerHTML = `
+    <div class="code">${kode}</div>
+    <div class="time">
+      ${sekarang.toLocaleString("id-ID")}
+    </div>
+  `;
+
+  list.prepend(item);
+
+}
+
+function kirimWA(){
+
+  const kode = 
+  prefix.value.toUpperCase() + angka.value;
+
+  const pesan = `PHASE ${kode} NON AWB`;
+
+  const url = 
+  `https://wa.me/?text=${encodeURIComponent(pesan)}`;
+
+  window.open(url, "_blank");
+
+}
+
+updatePreview();
+
+</script>
+
+</body>
+</html>
