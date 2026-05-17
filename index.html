@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+<title>Input Data</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
+html, body{
+  width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  background:#f3f4f6;
+  padding:20px;
+  user-select:none;
+}
+
+.container{
+  max-width:500px;
+  margin:auto;
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* ONLINE */
+.online-box{
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:15px;
+  margin-bottom:20px;
+}
+
+.online-title{
+  font-size:16px;
+  font-weight:bold;
+  margin-bottom:12px;
+}
+
+.online-list{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+}
+
+.user-online{
+  min-width:80px;
+  text-align:center;
+}
+
+.user-icon{
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  background:#2563eb;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:auto;
+  font-weight:bold;
+}
+
+.user-name{font-size:12px;}
+.user-status{font-size:11px;color:green;}
+.user-time{font-size:10px;color:#666;}
+
+.label{
+  margin-bottom:8px;
+  font-weight:bold;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  text-transform:uppercase;
+}
+
+.preview{
+  background:#eef2ff;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.btn-save{background:#2563eb;color:#fff;}
+.btn-reset{background:#ef4444;color:#fff;}
+.btn-wa{background:#22c55e;color:#fff;}
+.btn-login{background:#2563eb;color:#fff;}
+
+.data-item{color:#111;}
+.data-kembar{color:#ef4444;}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-box{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  width:90%;
+  max-width:350px;
+}
+
+.modal-button{
+  display:flex;
+  gap:10px;
+}
+
+.btn-batal{background:#d1d5db;}
+.btn-hapus{background:#ef4444;color:white;}
+.btn-login{background:#2563eb;color:white;}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>INPUT DATA</h1>
+
+<!-- ONLINE -->
+<div class="online-box">
+  <div class="online-title">User Online</div>
+  <div class="online-list" id="onlineList"></div>
+</div>
+
+<div class="label">Nomor Phase</div>
+<input type="text" id="phase" placeholder="Contoh: A"/>
+
+<div class="label">Nomor / Angka</div>
+<input type="text" id="angka" placeholder="Contoh: 106"/>
+
+<div class="preview" id="preview"></div>
+
+<button class="btn-save" onclick="simpanData()">Simpan Data</button>
+<button class="btn-reset" onclick="resetSemua()">Reset Semua Data</button>
+<button class="btn-wa" onclick="kirimWA()">Kirim ke WhatsApp</button>
+
+<div id="listRiwayat"></div>
+
+</div>
+
+<!-- LOGIN -->
+<div class="modal" id="modalLogin">
+  <div class="modal-box">
+    <h3>Masukkan Nama</h3>
+    <input id="namaUser" placeholder="Nama kamu"/>
+    <button class="btn-login" onclick="loginUser()">Masuk</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+// ================= SUPABASE =================
+const supabaseClient = supabase.createClient(
+  "https://wepqievfgfqsoilynrhc.supabase.co",
+  "sb_publishable_AUDqRGYqJi1pA7Y_QOIa-A_bIz-_zI1"
+);
+
+// ================= ELEMENT =================
+const phase = document.getElementById("phase");
+const angka = document.getElementById("angka");
+const preview = document.getElementById("preview");
+const listRiwayat = document.getElementById("listRiwayat");
+const modalLogin = document.getElementById("modalLogin");
+const namaUser = document.getElementById("namaUser");
+const onlineList = document.getElementById("onlineList");
+
+// ================= DATA =================
+let semuaData = [];
+let user = localStorage.getItem("user_nama");
+let userId = localStorage.getItem("user_id");
+
+// ================= LOGIN CHECK =================
+if(!user){
+  modalLogin.style.display = "flex";
+}else{
+  start();
+}
+
+// ================= LOGIN =================
+async function loginUser(){
+
+  const nama = namaUser.value.trim();
+  if(!nama) return alert("Nama kosong");
+
+  user = nama;
+  userId = crypto.randomUUID();
+
+  localStorage.setItem("user_nama", user);
+  localStorage.setItem("user_id", userId);
+
+  modalLogin.style.display = "none";
+
+  await updateOnline();
+  start();
+}
+
+// ================= START =================
+async function start(){
+
+  phase.value = "A";
+  updatePreview();
+
+  await updateOnline();
+  loadOnline();
+
+  setInterval(updateOnline, 10000);
+  setInterval(loadOnline, 5000);
+}
+
+// ================= ONLINE SYSTEM =================
+async function updateOnline(){
+
+  if(!user) return;
+
+  await supabaseClient
+    .from("online_users")
+    .upsert({
+      user_id: userId,
+      nama: user,
+      last_online: new Date().toISOString()
+    });
+}
+
+async function loadOnline(){
+
+  const limit = new Date(Date.now() - 30000).toISOString();
+
+  const { data } = await supabaseClient
+    .from("online_users")
+    .select("*")
+    .gte("last_online", limit);
+
+  if(!data) return;
+
+  onlineList.innerHTML = data.map(u => `
+    <div class="user-online">
+      <div class="user-icon">${u.nama?.charAt(0).toUpperCase()}</div>
+      <div class="user-name">${u.nama}</div>
+      <div class="user-status">Online</div>
+      <div class="user-time">
+        ${new Date(u.last_online).toLocaleTimeString("id-ID")}
+      </div>
+    </div>
+  `).join("");
+}
+
+// ================= INPUT =================
+function updatePreview(){
+  phase.value = phase.value.toUpperCase();
+  angka.value = angka.value.toUpperCase();
+  preview.innerText = phase.value + angka.value;
+}
+
+phase.oninput = updatePreview;
+angka.oninput = updatePreview;
+
+// ================= SAVE =================
+function simpanData(){
+
+  if(!angka.value.trim()){
+    alert("angka kosong");
+    return;
+  }
+
+  semuaData.push(phase.value + angka.value);
+  render();
+  angka.value = "";
+  updatePreview();
+}
+
+// ================= RENDER =================
+function render(){
+
+  let html = "";
+
+  semuaData.forEach(item => {
+
+    const dup = semuaData.filter(x => x === item).length > 1;
+
+    html += `<div class="${dup ? 'data-kembar':'data-item'}">${item}</div>`;
+
+  });
+
+  listRiwayat.innerHTML = html;
+}
+
+// ================= WA =================
+function kirimWA(){
+
+  if(!semuaData.length) return alert("kosong");
+
+  window.open(
+    `https://wa.me/?text=${encodeURIComponent(semuaData.join("\n"))}`
+  );
+}
+
+// ================= RESET =================
+function resetSemua(){
+  semuaData = [];
+  render();
+}
+
+// ================= BLOK AKSI =================
+document.addEventListener("copy", e => e.preventDefault());
+document.addEventListener("selectstart", e => e.preventDefault());
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+document.addEventListener("keydown", e => {
+  if(
+    (e.ctrlKey && e.key === "c") ||
+    (e.ctrlKey && e.key === "u") ||
+    (e.ctrlKey && e.key === "s")
+  ){
+    e.preventDefault();
+  }
+});
+
+</script>
+
+</body>
+</html>
