@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+
+<meta 
+name="viewport" 
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+/>
+
+<title>Input Data</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
+html, body{
+  width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  background:#f3f4f6;
+  padding:20px;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.container{
+  max-width:500px;
+  margin:auto;
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+  font-size:24px;
+}
+
+.label{
+  margin-bottom:8px;
+  font-weight:bold;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  margin-bottom:15px;
+  font-size:16px;
+  text-transform:uppercase;
+}
+
+.preview{
+  background:#eef2ff;
+  border:1px solid #c7d2fe;
+  border-radius:10px;
+  padding:15px;
+  margin-bottom:15px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  min-height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+  margin-bottom:10px;
+}
+
+.btn-save{
+  background:#2563eb;
+  color:white;
+}
+
+.btn-reset{
+  background:#ef4444;
+  color:white;
+}
+
+.btn-wa{
+  background:#22c55e;
+  color:white;
+}
+
+.history{
+  margin-top:25px;
+}
+
+.history h2{
+  margin-bottom:15px;
+  font-size:20px;
+}
+
+#listRiwayat{
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  padding:15px;
+  min-height:120px;
+  white-space:pre-line;
+  font-size:18px;
+  font-weight:bold;
+  line-height:1.8;
+}
+
+.footer{
+  text-align:center;
+  margin-top:25px;
+  font-size:14px;
+  color:#666;
+  line-height:1.7;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>INPUT DATA</h1>
+
+<div class="label">Nomor Phase</div>
+
+<input
+type="text"
+id="phase"
+placeholder="Contoh: A"
+/>
+
+<div class="label">Nomor / Angka</div>
+
+<input
+type="text"
+id="angka"
+placeholder="Contoh: 106"
+/>
+
+<div class="preview" id="preview"></div>
+
+<button class="btn-save" onclick="simpanData()">
+Simpan Data
+</button>
+
+<button class="btn-reset" onclick="resetSemua()">
+Reset Semua Data
+</button>
+
+<button class="btn-wa" onclick="kirimWA()">
+Kirim ke WhatsApp
+</button>
+
+<div class="history">
+
+<h2>Data Terkumpul</h2>
+
+<div id="listRiwayat"></div>
+
+</div>
+
+<div class="footer">
+
+© 2026 Zulfahmi Afnula<br>
+INPUT MANUAL DATA PHASE<br>
+All Rights Reserved
+
+</div>
+
+</div>
+
+<script>
+
+const phase = document.getElementById("phase");
+const angka = document.getElementById("angka");
+const preview = document.getElementById("preview");
+const listRiwayat = document.getElementById("listRiwayat");
+
+let semuaData = [];
+
+function updatePreview(){
+
+  phase.value = phase.value.toUpperCase();
+  angka.value = angka.value.toUpperCase();
+
+  preview.innerHTML =
+  phase.value + angka.value;
+
+}
+
+phase.addEventListener("input", updatePreview);
+angka.addEventListener("input", updatePreview);
+
+function simpanData(){
+
+  const hasil =
+  phase.value + angka.value;
+
+  if(hasil.trim() === ""){
+    alert("Input masih kosong");
+    return;
+  }
+
+  semuaData.push(hasil);
+
+  tampilkanData();
+
+  phase.value = "";
+  angka.value = "";
+
+  preview.innerHTML = "";
+
+  phase.focus();
+
+}
+
+function tampilkanData(){
+
+  listRiwayat.innerHTML =
+  semuaData.join("<br>");
+
+}
+
+function resetSemua(){
+
+  semuaData = [];
+
+  listRiwayat.innerHTML = "";
+
+  phase.value = "";
+  angka.value = "";
+
+  preview.innerHTML = "";
+
+}
+
+function kirimWA(){
+
+  if(semuaData.length === 0){
+    alert("Belum ada data");
+    return;
+  }
+
+  const hasilGabung =
+  semuaData.join("\n");
+
+  const url =
+  `https://wa.me/?text=${encodeURIComponent(hasilGabung)}`;
+
+  window.open(url, "_blank");
+
+}
+
+updatePreview();
+
+
+// BLOK COPY
+document.addEventListener("copy", e => {
+  e.preventDefault();
+});
+
+// BLOK SELECT TEXT
+document.addEventListener("selectstart", e => {
+  e.preventDefault();
+});
+
+// BLOK KLIK KANAN
+document.addEventListener("contextmenu", e => {
+  e.preventDefault();
+});
+
+// BLOK CTRL
+document.addEventListener("keydown", e => {
+
+  if (
+    (e.ctrlKey && e.key === "c") ||
+    (e.ctrlKey && e.key === "u") ||
+    (e.ctrlKey && e.key === "s")
+  ) {
+    e.preventDefault();
+  }
+
+});
+
+</script>
+
+</body>
+</html>
